@@ -101,17 +101,19 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		std::vector<double> sense_y;
 
 		double weight = 1.0;
+		double cos_theta = cos(p.theta);
+		double sin_theta = sin(p.theta);
 
 		for (int k = 0; k < observations.size(); k ++) {
 
 			LandmarkObs obs = observations[k];
 
 			// Transform observation x,y to world's coordinates x,y
-			double x = p.x + obs.x * cos(p.theta) - obs.y * sin(p.theta);
-			double y = p.y + obs.x * sin(p.theta) + obs.y * cos(p.theta);
+			double x = p.x + obs.x * cos_theta - obs.y * sin_theta;
+			double y = p.y + obs.x * sin_theta + obs.y * cos_theta;
 
 			// Find data association for world's(x, y)
-			double dist_min = 100000;
+			double dist_min = std::numeric_limits<double>::max();
 			Map::single_landmark_s &mark_min = map_landmarks.landmark_list[0];
 			for (int m = 0; m < map_landmarks.landmark_list.size(); m ++) {
 				Map::single_landmark_s mark = map_landmarks.landmark_list[m];
@@ -147,14 +149,14 @@ void ParticleFilter::resample() {
 	// NOTE: You may find std::discrete_distribution helpful here.
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
 	
-	// Normalize weights
-	double sum_w = 0;
-	for (int i = 0; i < weights.size(); i ++) {
-		sum_w += weights[i];
-	}
-	for (int i = 0; i < weights.size(); i ++) {
-		weights[i] /= sum_w;
-	}
+	// Normalize weights(No Need:the discrete_distribution can deal with unnormalized weights)
+	// double sum_w = 0;
+	// for (int i = 0; i < weights.size(); i ++) {
+	// 	sum_w += weights[i];
+	// }
+	// for (int i = 0; i < weights.size(); i ++) {
+	// 	weights[i] /= sum_w;
+	// }
 
 	// default_random_engine gen;
 	discrete_distribution<int> dist_p(weights.begin(), weights.end());
